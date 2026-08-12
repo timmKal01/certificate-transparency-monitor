@@ -1,0 +1,11 @@
+{
+    "actorOutputSchemaVersion": 1,
+    "title": "Output schema of Certificate Transparency Monitor",
+    "properties": {
+        "results": {
+            "type": "string",
+            "title": "Certificates",
+            "template": "{{links.apiDefaultDatasetUrl}}/items"
+        }
+    }
+}

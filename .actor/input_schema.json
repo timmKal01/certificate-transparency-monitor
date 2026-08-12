@@ -1,0 +1,33 @@
+{
+    "title": "Certificate Transparency Monitor Input",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "domain": {
+            "title": "Domain",
+            "type": "string",
+            "editor": "textfield",
+            "description": "Domain to search, without protocol or \"www.\" (e.g. \"example.com\"). Matches this domain and all its subdomains.",
+            "prefill": "example.com"
+        },
+        "daysBack": {
+            "title": "Days back",
+            "type": "integer",
+            "editor": "number",
+            "description": "How many days back from today to include, by CT log entry timestamp.",
+            "default": 30,
+            "minimum": 1,
+            "maximum": 365
+        },
+        "maxResults": {
+            "title": "Max results",
+            "type": "integer",
+            "editor": "number",
+            "description": "Maximum number of unique certificates to return, most recently logged first.",
+            "default": 50,
+            "minimum": 1,
+            "maximum": 200
+        }
+    },
+    "required": ["domain"]
+}

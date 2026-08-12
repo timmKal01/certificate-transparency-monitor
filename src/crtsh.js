@@ -1,0 +1,55 @@
+const UA = 'CertificateTransparencyMonitor/0.1 (+contact: ct-monitor-admin@example.com)';
+
+const TRANSIENT_STATUSES = new Set([404, 502, 503, 504]);
+const MAX_ATTEMPTS = 4;
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * crt.sh is a free community service that returns bare error pages (HTML, not JSON) under load —
+ * observed as both 404 and 502 for the *same* query on different attempts, so these are not a
+ * reliable "zero results" signal. Retry transient-looking failures instead of treating them as
+ * empty results, since silently reporting "no certificates" on a backend hiccup would be actively
+ * misleading for a security-monitoring tool.
+ */
+async function fetchWithRetry(url) {
+    let lastStatus;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const res = await fetch(url, { headers: { 'User-Agent': UA } });
+        if (res.ok) return res;
+        lastStatus = res.status;
+        if (!TRANSIENT_STATUSES.has(res.status)) {
+            throw new Error(`crt.sh request failed: ${res.status}`);
+        }
+        if (attempt < MAX_ATTEMPTS) await sleep(1000 * 2 ** (attempt - 1));
+    }
+    throw new Error(`crt.sh unavailable after ${MAX_ATTEMPTS} attempts (last status: ${lastStatus})`);
+}
+
+export async function fetchCertificates({ domain, startDate, maxResults }) {
+    const url = `https://crt.sh/?q=${encodeURIComponent(`%.${domain}`)}&output=json&exclude=expired`;
+    const res = await fetchWithRetry(url);
+    const entries = await res.json();
+
+    const bySerial = new Map();
+    for (const e of entries) {
+        if (!bySerial.has(e.serial_number)) bySerial.set(e.serial_number, e);
+    }
+
+    return [...bySerial.values()]
+        .filter((e) => new Date(e.entry_timestamp) >= startDate)
+        .sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp))
+        .slice(0, maxResults)
+        .map((e) => ({
+            commonName: e.common_name,
+            subjectAlternativeNames: [...new Set((e.name_value ?? '').split('\n').filter(Boolean))],
+            issuerName: e.issuer_name,
+            serialNumber: e.serial_number,
+            notBefore: e.not_before,
+            notAfter: e.not_after,
+            entryTimestamp: e.entry_timestamp,
+            crtshUrl: `https://crt.sh/?id=${e.id}`,
+        }));
+}
