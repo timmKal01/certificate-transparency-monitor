@@ -7,7 +7,8 @@ validity window for each certificate — most recently logged first.
 Built for security teams monitoring their own domain for unauthorized or
 unexpected certificate issuance, and for attack-surface reconnaissance —
 newly issued certs often reveal newly launched subdomains before anything
-else does.
+else does. A cert issued for a phishing look-alike or a shadow-IT subdomain
+shows up here before it shows up in a customer complaint or a pentest.
 
 ## Input
 
