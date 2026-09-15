@@ -8,7 +8,8 @@
             "type": "string",
             "editor": "textfield",
             "description": "Domain to search, without protocol or \"www.\" (e.g. \"example.com\"). Matches this domain and all its subdomains.",
-            "prefill": "example.com"
+            "prefill": "example.com",
+            "default": "example.com"
         },
         "daysBack": {
             "title": "Days back",
