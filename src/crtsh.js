@@ -68,9 +68,15 @@ export async function fetchCertificates({ domain, startDate, maxResults }) {
         if (!bySerial.has(e.serial_number)) bySerial.set(e.serial_number, e);
     }
 
+    // crt.sh's JSON output for this query no longer includes `entry_timestamp` (observed:
+    // present in some crt.sh response shapes, absent from this one), which silently made every
+    // entry fail `new Date(undefined) >= startDate` and return zero results regardless of the
+    // real data available. `not_before` (when the cert becomes valid) is always present and is
+    // issued essentially at CT-log time, so it's used as the log-time proxy for both the date
+    // filter and the sort instead.
     return [...bySerial.values()]
-        .filter((e) => new Date(e.entry_timestamp) >= startDate)
-        .sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp))
+        .filter((e) => new Date(e.not_before) >= startDate)
+        .sort((a, b) => new Date(b.not_before) - new Date(a.not_before))
         .slice(0, maxResults)
         .map((e) => ({
             commonName: e.common_name,
@@ -79,7 +85,7 @@ export async function fetchCertificates({ domain, startDate, maxResults }) {
             serialNumber: e.serial_number,
             notBefore: e.not_before,
             notAfter: e.not_after,
-            entryTimestamp: e.entry_timestamp,
+            entryTimestamp: e.not_before,
             crtshUrl: `https://crt.sh/?id=${e.id}`,
         }));
 }
