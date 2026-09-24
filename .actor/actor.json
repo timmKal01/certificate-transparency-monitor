@@ -1,7 +1,7 @@
 {
     "actorSpecification": 1,
     "name": "certificate-transparency-monitor",
-    "title": "Certificate Transparency Monitor — New Certs by Domain",
+    "title": "SSL Certificate Monitor: New Certs & Subdomains",
     "description": "Search Certificate Transparency logs for newly issued SSL/TLS certificates on a domain and its subdomains. Spot unauthorized certs or newly launched subdomains — official CT log data, no proxy, no scanning.",
     "version": "0.1",
     "meta": {
