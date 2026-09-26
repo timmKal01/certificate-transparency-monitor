@@ -1,0 +1,58 @@
+{
+    "actorSpecification": 1,
+    "fields": {},
+    "views": {
+        "overview": {
+            "title": "Overview",
+            "transformation": {
+                "fields": [
+                    "commonName",
+                    "subjectAlternativeNames",
+                    "issuerName",
+                    "serialNumber",
+                    "notBefore",
+                    "notAfter",
+                    "entryTimestamp",
+                    "crtshUrl"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "commonName": {
+                        "label": "Common name",
+                        "format": "text"
+                    },
+                    "subjectAlternativeNames": {
+                        "label": "Subject alternative names",
+                        "format": "array"
+                    },
+                    "issuerName": {
+                        "label": "Issuer name",
+                        "format": "text"
+                    },
+                    "serialNumber": {
+                        "label": "Serial number",
+                        "format": "text"
+                    },
+                    "notBefore": {
+                        "label": "Not before",
+                        "format": "date"
+                    },
+                    "notAfter": {
+                        "label": "Not after",
+                        "format": "date"
+                    },
+                    "entryTimestamp": {
+                        "label": "Entry timestamp",
+                        "format": "date"
+                    },
+                    "crtshUrl": {
+                        "label": "Crt.sh URL",
+                        "format": "link"
+                    }
+                }
+            }
+        }
+    }
+}
