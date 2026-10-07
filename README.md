@@ -14,7 +14,7 @@ shows up here before it shows up in a customer complaint or a pentest.
 
 ```json
 {
-  "domain": "example.com",
+  "domain": "apify.com",
   "daysBack": 30,
   "maxResults": 50
 }
@@ -40,7 +40,8 @@ same cert is often logged to multiple CT logs):
   "notBefore": "2026-08-09T03:25:05",
   "notAfter": "2026-11-07T03:25:04",
   "entryTimestamp": "2026-08-09T04:23:36.294",
-  "crtshUrl": "https://crt.sh/?id=28666584809"
+  "crtshUrl": "https://crt.sh/?id=28666584809",
+  "source": "crt.sh website"
 }
 ```
 
@@ -49,8 +50,12 @@ same cert is often logged to multiple CT logs):
 Direct calls to [crt.sh](https://crt.sh/), a free public Certificate
 Transparency log search service. No proxy, no login, no scraping — CT logs
 are public by design (every publicly-trusted certificate is logged there).
-crt.sh is a community service that occasionally returns transient errors
-under load; the actor retries automatically before giving up.
+crt.sh is a community service whose website often returns errors under
+load. The actor retries it, and if the website stays down it runs the same
+search against crt.sh's public read-only database instead, which kept
+answering during website outages. The `source` field shows which one
+answered (`crt.sh website` or `crt.sh database`). If both are down, the run
+fails with a clear message and nothing is charged.
 
 ## Pricing note
 
