@@ -82,8 +82,8 @@ const DB_QUERY = `
            x509_commonName(c.certificate) AS common_name,
            ca.name AS issuer_name,
            encode(x509_serialNumber(c.certificate), 'hex') AS serial_number,
-           x509_notBefore(c.certificate) AS not_before,
-           x509_notAfter(c.certificate) AS not_after,
+           to_char(x509_notBefore(c.certificate), 'YYYY-MM-DD"T"HH24:MI:SS') AS not_before,
+           to_char(x509_notAfter(c.certificate), 'YYYY-MM-DD"T"HH24:MI:SS') AS not_after,
            array_to_string(ARRAY(SELECT DISTINCT lower(n) FROM x509_altNames(c.certificate) n), chr(10)) AS name_value
     FROM certificate c
     JOIN ca ON ca.id = c.issuer_ca_id
@@ -98,8 +98,12 @@ const DB_QUERY = `
     ORDER BY x509_notBefore(c.certificate) DESC
     LIMIT $3`;
 
-/** The database returns timestamps as Date objects; match the website's "2026-10-03T07:08:23" form. */
-const toCrtshTime = (value) => (value instanceof Date ? value.toISOString().slice(0, 19) : value);
+/**
+ * crt.sh stores certificate times as UTC in a column without a time zone. Letting the pg driver turn
+ * them into Dates reads them in the machine's local zone (3 hours off on a UTC+3 laptop), so they're
+ * formatted as text in SQL instead, matching the website's "2026-10-03T10:08:23" form.
+ */
+const utc = (crtshTime) => new Date(`${crtshTime}Z`);
 
 /**
  * The crt.sh website (its JSON output) is the part that falls over under load; the database behind
@@ -138,7 +142,7 @@ async function queryDatabase({ domain, startDate, maxResults }, deadline) {
         await client.connect();
         // Precertificates and final certificates share a serial, so ask for extra rows before de-duplicating.
         const { rows } = await client.query(DB_QUERY, [domain.toLowerCase(), startDate.toISOString(), maxResults * 3]);
-        return rows.map((row) => ({ ...row, not_before: toCrtshTime(row.not_before), not_after: toCrtshTime(row.not_after) }));
+        return rows;
     } finally {
         await client.end().catch(() => {});
     }
@@ -174,8 +178,8 @@ export async function fetchCertificates({ domain, startDate, maxResults }) {
     // issued essentially at CT-log time, so it's used as the log-time proxy for both the date
     // filter and the sort instead.
     const certificates = [...bySerial.values()]
-        .filter((e) => new Date(e.not_before) >= startDate)
-        .sort((a, b) => new Date(b.not_before) - new Date(a.not_before))
+        .filter((e) => utc(e.not_before) >= startDate)
+        .sort((a, b) => utc(b.not_before) - utc(a.not_before))
         .slice(0, maxResults)
         .map((e) => ({
             commonName: e.common_name,
