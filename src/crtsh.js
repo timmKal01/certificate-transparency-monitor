@@ -113,13 +113,18 @@ const utc = (crtshTime) => new Date(`${crtshTime}Z`);
  */
 export async function fetchFromDatabase({ domain, startDate, maxResults }, deadline) {
     let lastError;
-    // One retry when there's time for it: a connection occasionally times out right after crt.sh cancels a query.
-    for (let attempt = 1; attempt <= 2 && deadline - Date.now() > 30_000; attempt++) {
+    // Keep retrying, with growing pauses, while there's time left for a query. Connection failures are
+    // usually brief: crt.sh's pooler refuses new clients with "no more connections allowed
+    // (max_client_conn)" when it's full (seen 2026-10-11), and a connection occasionally times out
+    // right after crt.sh cancels a query. Two quick attempts gave up after 23 seconds of a 4-minute budget.
+    for (let attempt = 1; deadline - Date.now() > 30_000; attempt++) {
         try {
             return await queryDatabase({ domain, startDate, maxResults }, deadline);
         } catch (err) {
             lastError = err;
             log.warning(`crt.sh database attempt ${attempt} failed`, { error: err.message });
+            const pause = Math.min(5000 * 2 ** (attempt - 1), 30_000, deadline - Date.now() - 30_000);
+            if (pause > 0) await sleep(pause);
         }
     }
     throw lastError ?? new Error('out of time');
