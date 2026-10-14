@@ -66,5 +66,5 @@ the search returns 1 certificate or 200.
 
 Looking for other risk-monitoring signals?
 
-- [Vulnerability Alert](https://github.com/timmKal01/vulnerability-alert) — new CVEs by product and severity
-- [Website Tech Stack Detector](https://github.com/timmKal01/website-tech-stack-detector) — tech fingerprint per domain
+- [CVE Tracker](https://apify.com/m_ctim/vulnerability-alert): new CVEs by product and severity
+- [Website Tech Stack Checker](https://apify.com/m_ctim/website-tech-stack-detector): tech fingerprint per domain
