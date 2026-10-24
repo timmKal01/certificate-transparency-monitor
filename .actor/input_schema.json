@@ -30,5 +30,5 @@
             "maximum": 200
         }
     },
-    "required": ["domain"]
+    "required": []
 }
