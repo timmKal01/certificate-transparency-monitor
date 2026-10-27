@@ -33,6 +33,7 @@ same cert is often logged to multiple CT logs):
 
 ```json
 {
+  "rowType": "certificate",
   "commonName": "affiliate.example.com",
   "subjectAlternativeNames": ["affiliate.example.com"],
   "issuerName": "C=US, O=Let's Encrypt, CN=YR2",

@@ -21,7 +21,7 @@ const { certificates, source } = await fetchCertificates({
 });
 
 for (const cert of certificates) {
-    await Actor.pushData(cert);
+    await Actor.pushData({ rowType: 'certificate', ...cert });
 }
 
 await Actor.charge({ eventName: CERT_SEARCH_EVENT });
